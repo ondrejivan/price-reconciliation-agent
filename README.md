@@ -42,16 +42,16 @@ email ingestion, the approval flow, evals, and tracing come later.
 
 Code map (`apps/api/src`):
 
-| File | Role |
-| --- | --- |
-| `server.ts` | Entry point: reads config and picks a reconciler |
-| `app.ts` | Fastify routes: `GET /health`, `POST /reconciliations` |
-| `reconcile/service.ts` | Runs a reconciler, applies guardrails, stores proposals |
-| `reconcile/claude.ts` | Claude Agent SDK agent with the `lookup_product` MCP tool |
+| File                         | Role                                                        |
+| ---------------------------- | ----------------------------------------------------------- |
+| `server.ts`                  | Entry point: reads config and picks a reconciler            |
+| `app.ts`                     | Fastify routes: `GET /health`, `POST /reconciliations`      |
+| `reconcile/service.ts`       | Runs a reconciler, applies guardrails, stores proposals     |
+| `reconcile/claude.ts`        | Claude Agent SDK agent with the `lookup_product` MCP tool   |
 | `reconcile/deterministic.ts` | Exact-SKU CSV matcher, used without an API key and in tests |
-| `catalog.ts` | The catalog query behind `lookup_product` |
-| `db/` | Kysely types, migrations, and sample seed data |
-| `migrate.ts` | CLI: `node dist/migrate.js [--seed]` |
+| `catalog.ts`                 | The catalog query behind `lookup_product`                   |
+| `db/`                        | Kysely types, migrations, and sample seed data              |
+| `migrate.ts`                 | CLI: `node dist/migrate.js [--seed]`                        |
 
 Which reconciler runs: `RECONCILER=claude|deterministic`. If it's unset, the API uses `claude`
 when `ANTHROPIC_API_KEY` is set and `deterministic` otherwise.
