@@ -1,0 +1,4 @@
+project_id = "my-gcp-project"
+# region           = "europe-west1"
+# reconciler       = "claude"
+# db_tier          = "db-f1-micro"

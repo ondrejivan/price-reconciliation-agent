@@ -1,0 +1,42 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: pra
+      POSTGRES_PASSWORD: pra
+      POSTGRES_DB: pra
+    ports:
+      - "5432:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "pra"]
+      interval: 2s
+      retries: 15
+
+  # Runs migrations and loads the sample catalog, then exits.
+  migrate:
+    build: .
+    command: ["node", "dist/migrate.js", "--seed"]
+    environment:
+      DATABASE_URL: postgres://pra:pra@db:5432/pra
+    depends_on:
+      db:
+        condition: service_healthy
+
+  api:
+    build: .
+    environment:
+      DATABASE_URL: postgres://pra:pra@db:5432/pra
+      PORT: "3000"
+      # Leave ANTHROPIC_API_KEY unset to use the deterministic SKU matcher.
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      RECONCILER: ${RECONCILER:-}
+    ports:
+      - "3000:3000"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+volumes:
+  db-data:
