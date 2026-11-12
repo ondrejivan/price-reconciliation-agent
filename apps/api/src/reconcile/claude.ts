@@ -63,7 +63,11 @@ export function createClaudeReconciler(options: { model: string }): Reconciler {
           settingSources: [],
           persistSession: false,
           maxTurns: 30,
-          outputFormat: { type: "json_schema", schema: z.toJSONSchema(resultSchema) },
+          // Claude Code's schema validator rejects Zod's default draft 2020-12 output.
+          outputFormat: {
+            type: "json_schema",
+            schema: z.toJSONSchema(resultSchema, { target: "draft-7" }),
+          },
         },
       });
 
@@ -71,6 +75,10 @@ export function createClaudeReconciler(options: { model: string }): Reconciler {
         if (message.type !== "result") continue;
         if (message.subtype !== "success") {
           throw new Error(`Agent run failed: ${message.subtype}`);
+        }
+        // API errors (bad key, overload) arrive as "success" with is_error set.
+        if (message.is_error) {
+          throw new Error(`Agent run failed: ${message.result}`);
         }
         return resultSchema.parse(message.structured_output);
       }

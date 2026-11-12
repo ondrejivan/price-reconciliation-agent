@@ -63,13 +63,21 @@ describe("claude reconciler", () => {
     });
     expect(options?.tools).toEqual([]);
     expect(options?.allowedTools).toEqual(["mcp__catalog__lookup_product"]);
-    expect(options?.outputFormat?.type).toBe("json_schema");
+    expect(options?.outputFormat?.schema.$schema).toBe("http://json-schema.org/draft-07/schema#");
   });
 
   it("fails when the agent run does not succeed", async () => {
     fakeModel.run = async () => [{ type: "result", subtype: "error_max_turns" }];
 
     await expect(reconciler.reconcile(input, lookup)).rejects.toThrow("error_max_turns");
+  });
+
+  it("fails on API errors, which the SDK reports as a successful turn with is_error", async () => {
+    fakeModel.run = async () => [
+      { type: "result", subtype: "success", is_error: true, result: "Invalid API key" },
+    ];
+
+    await expect(reconciler.reconcile(input, lookup)).rejects.toThrow("Invalid API key");
   });
 
   it("rejects structured output that does not match the schema", async () => {
